@@ -1,5 +1,4 @@
 const router = require('express').Router();
-
 const { Blog } = require('../models');
 
 router.get('/', async (req, res) => {
@@ -8,41 +7,31 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  try {
-	  const blog = await Blog.create(req.body);
-	  return res.json(blog);
-  } catch (error) {
-	  return res.status(400).json( { error });
-  }
+  const blog = await Blog.create(req.body);
+  return res.json(blog);
 });
 
 router.get('/:id', async (req, res) => {
   const blog = await Blog.findByPk(req.params.id);
-  if (blog) {
+  if (blog)
     return res.json(blog);
-  } else {
+  else
     return res.status(404).end();
-  }
 });
 
 router.delete('/:id', async (request, response) => {
-  const deletedRows = await Blog.destroy( { where: { id: request.params.id }} );
-  if (deletedRows) {
+  const deletedRows = await Blog.destroy({ where: { id: request.params.id } });
+  if (deletedRows)
     return response.status(204).end();
-  } else {
-    return response.status(404).json({ error: 'Blog not found' });
-  }
+  else
+    return response.status(404).json({ error: `Blog id '${request.params.id}' not found` });
 });
 
 router.put('/:id', async (req, res) => {
   const blog = await Blog.findByPk(req.params.id);
-  if (blog && req.body.likes) {
-	  blog.likes = req.body.likes;
-	  await blog.save();
-	  return res.json(blog);
-  } else {
-	  return res.status(404).end();
-  }
+  blog.likes = req.body.likes;
+  await blog.save();
+  return res.json(blog);
 });
 
 module.exports = router;
