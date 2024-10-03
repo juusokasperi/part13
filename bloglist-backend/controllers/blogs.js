@@ -13,22 +13,22 @@ router.post('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   const blog = await Blog.findByPk(req.params.id);
-  if (blog)
-    return res.json(blog);
-  else
-    return res.status(404).end();
+  if (!blog)
+    throw Error('invalid id');
+  return res.json(blog);
 });
 
-router.delete('/:id', async (request, response) => {
-  const deletedRows = await Blog.destroy({ where: { id: request.params.id } });
-  if (deletedRows)
-    return response.status(204).end();
-  else
-    return response.status(404).json({ error: `Blog id '${request.params.id}' not found` });
+router.delete('/:id', async (req, res) => {
+  const deletedRows = await Blog.destroy({ where: { id: req.params.id } });
+  if (!deletedRows)
+    throw Error('invalid id');
+  return res.status(204).end();
 });
 
 router.put('/:id', async (req, res) => {
   const blog = await Blog.findByPk(req.params.id);
+  if (!blog)
+    throw Error('invalid id');
   blog.likes = req.body.likes;
   await blog.save();
   return res.json(blog);

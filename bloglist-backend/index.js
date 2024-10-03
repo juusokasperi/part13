@@ -1,6 +1,5 @@
 const express = require('express');
 require('express-async-errors');
-const app = express();
 const logger = require('./util/logger');
 const middleware = require('./util/middleware');
 const { PORT } = require('./util/config');
@@ -8,8 +7,13 @@ const { connectToDatabase } = require('./util/db');
 
 const blogsRouter = require('./controllers/blogs');
 
+const app = express();
 app.use(express.json());
+app.use(middleware.requestLogger);
 app.use('/api/blogs', blogsRouter);
+
+app.use(middleware.unknownEndPoint);
+app.use(middleware.errorHandler);
 
 const start = async() => {
   await connectToDatabase();
@@ -17,8 +21,5 @@ const start = async() => {
     logger.info(`Server running on ${PORT}`);
   });
 };
-
-app.use(middleware.unknownEndPoint);
-app.use(middleware.errorHandler);
 
 start();
