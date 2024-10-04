@@ -37,6 +37,8 @@ const errorHandler = (error, request, response, next) => {
     return response.status(400).send({ error: 'Invalid blog id' });
   if (error.message === 'invalid user')
     return response.status(400).send({ error: 'Invalid username/user-id' });
+  if (error.message === 'invalid reading')
+    return response.status(400).send({ error: 'Invalid reading id' });
   if (error.name === 'SequelizeValidationError') {
     const formattedErrors = {};
     error.errors.forEach(err => {

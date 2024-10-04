@@ -24,9 +24,20 @@ router.post('/', async(req, res) => {
 });
 
 router.get('/:id', async(req, res) => {
-  const user = await User.scope('withoutPassword').findByPk(req.params.id);
-  if (!user)
-    throw Error('invalid user');
+  const user = await User.scope('withoutPassword').findByPk(req.params.id, {
+    include: [{
+      model: Blog,
+      as: 'readings',
+      attributes: { exclude: ['userId', 'createdAt', 'updatedAt'] },
+      through: {
+        attributes: ['id', 'read'],
+        as: 'readinglists',
+        where: req.query.read ? {
+          read: req.query.read === 'true'
+        } : undefined
+      },
+    }],
+  });
   return res.json(user);
 });
 
@@ -34,7 +45,7 @@ router.put('/:username', async (req, res) => {
   const user = await User.scope('withoutPassword').findOne({
     where: { username: req.params.username } });
   if (!user)
-    throw Error('invalid user');
+    throw Error('invalid user') ;
   user.username = req.body.username;
   await user.save();
   return res.json(user);
