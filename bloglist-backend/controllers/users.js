@@ -18,7 +18,6 @@ router.post('/', async(req, res) => {
     return res.status(400).json({ error: 'password is missing' });
   }
   const passwordHash = await bcrypt.hash(password, 10);
-  console.log(username, name, password, passwordHash);
   const user = await User.create({ username, name, passwordHash });
   return res.status(201).json(user);
 });

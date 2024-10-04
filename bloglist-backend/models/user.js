@@ -25,15 +25,21 @@ User.init({
   passwordHash: {
     type: DataTypes.STRING,
     allowNull: false
-  }
+  },
+  disabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
 }, {
   sequelize,
   underscored: true,
   modelName: 'user',
+  defaultScope: { where: { disabled: false } },
   scopes: {
     withoutPassword: {
       attributes: { exclude: ['passwordHash'] },
     },
+    getAll: { where: {} },
   },
 });
 

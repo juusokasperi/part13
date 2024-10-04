@@ -1,6 +1,7 @@
 const logger = require('./logger');
 const jwt = require('jsonwebtoken');
 const { SECRET } = require('./config');
+const { Session, User } = require('../models');
 
 const requestLogger = (request, response, next) => {
   logger.info('Method:', request.method);
@@ -17,11 +18,24 @@ const tokenExtractor = (req, res, next) => {
   next();
 };
 
-const userExtractor = (request, response, next) => {
+const userExtractor = async (request, response, next) => {
   if (!request.token) {
     return response.status(401).send({ error: 'no token' });
   }
-  request.user = jwt.verify(request.token, SECRET);
+
+  const decodedToken = jwt.verify(request.token, SECRET);
+  const session = await Session.findOne({
+    where: { token: request.token, userId: decodedToken.id },
+    include: { model: User, attributes: ['id', 'username', 'disabled'] }
+  });
+
+  if (!session || session.user.disabled)
+    return response.status(401).json({ error: 'login not found or user disabled' });
+  if (session.user.id !== decodedToken.id)
+    return response.status(401).json({ error: 'token user mismatch' });
+
+  request.user = session.user;
+
   next();
 };
 
@@ -32,7 +46,7 @@ const unknownEndPoint = (request, response) => {
 
 // eslint-disable-next-line no-unused-vars
 const errorHandler = (error, request, response, next) => {
-  logger.error(error.message);
+  logger.error('Error:', error.message);
   if (error.message === 'invalid blog id')
     return response.status(400).send({ error: 'Invalid blog id' });
   if (error.message === 'invalid user')
@@ -48,6 +62,8 @@ const errorHandler = (error, request, response, next) => {
   }
   if (error.name === 'TokenExpiredError')
     return response.status(401).json({ error: 'token expired' });
+  if (error.name === 'JsonWebTokenError')
+    return response.status(401).json({ error: 'invalid token' });
   next(error);
 };
 
