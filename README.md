@@ -2,6 +2,8 @@
 
 Started 24/10/03.
 
-Build PostGres using `docker compose up -d`
-
-Exercise 13.3 in `cli.js` file.
+## Run app:
+1.	Build PostGres using `docker compose up -d`
+2.	To run in dev mode with nodemon, `npm run dev`
+	For production, `npm start`
+3.	To undo last migration, `npm run migration:down`
