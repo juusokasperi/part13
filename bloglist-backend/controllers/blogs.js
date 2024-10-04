@@ -1,34 +1,45 @@
 const router = require('express').Router();
-const { Blog } = require('../models');
+const { Blog, User } = require('../models');
+const middleware = require('../util/middleware');
 
 router.get('/', async (req, res) => {
-  const blogs = await Blog.findAll();
+  const blogs = await Blog.findAll({
+    attributes: { excluse: ['userId' ]},
+    include: {
+      model: User,
+      attributes: ['name']
+    }
+  });
   return res.json(blogs);
 });
 
-router.post('/', async (req, res) => {
-  const blog = await Blog.create(req.body);
+router.post('/', middleware.userExtractor, async (req, res) => {
+  const user = await User.findByPk(req.user.id);
+  const blog = await Blog.create({ ...req.body, userId: user.id });
   return res.json(blog);
 });
 
 router.get('/:id', async (req, res) => {
   const blog = await Blog.findByPk(req.params.id);
   if (!blog)
-    throw Error('invalid id');
+    throw Error('invalid blog id');
   return res.json(blog);
 });
 
-router.delete('/:id', async (req, res) => {
-  const deletedRows = await Blog.destroy({ where: { id: req.params.id } });
-  if (!deletedRows)
-    throw Error('invalid id');
+router.delete('/:id', middleware.userExtractor, async (req, res) => {
+  const blogToDelete = await Blog.findByPk(req.params.id);
+  if (!blogToDelete)
+    throw Error('invalid blog id');
+  if (req.user.id !== blogToDelete.userId)
+    return res.status(401).json({ error: 'user not authorized to delete this blog' });
+  await blogToDelete.destroy();
   return res.status(204).end();
 });
 
 router.put('/:id', async (req, res) => {
   const blog = await Blog.findByPk(req.params.id);
   if (!blog)
-    throw Error('invalid id');
+    throw Error('invalid blog id');
   blog.likes = req.body.likes;
   await blog.save();
   return res.json(blog);
