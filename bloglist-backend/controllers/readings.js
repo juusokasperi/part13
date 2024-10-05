@@ -6,7 +6,7 @@ const middleware = require('../util/middleware');
 router.post('/', middleware.userExtractor, async (req, res) => {
   const { blogId, userId } = req.body;
   if (req.user.id !== userId)
-    return res.status(401).json({ error: 'not authorized to edit other user\'s reading list' });
+    throw Error('not authorized');
   if (!(await Blog.findByPk(blogId)))
     return res.status(404).json({ error: 'blog not found' });
   if (await UserBlogs.findOne({ where: { userId, blogId } }))
@@ -20,7 +20,7 @@ router.put('/:id', middleware.userExtractor, async (req, res) => {
   if (!reading)
     throw Error('invalid reading');
   if (req.user.id !== reading.userId)
-    return res.status(401).json({ error: 'user not authorized to modify this reading' });
+    throw Error('not authorized');
   reading.read = req.body.read;
   await reading.save();
   return res.json(reading);

@@ -50,7 +50,7 @@ router.delete('/:id', middleware.userExtractor, async (req, res) => {
   if (!blogToDelete)
     throw Error('invalid blog id');
   if (req.user.id !== blogToDelete.userId)
-    return res.status(401).json({ error: 'user not authorized to delete this blog' });
+    throw Error('not authorized');
   await blogToDelete.destroy();
   return res.status(204).end();
 });
@@ -60,7 +60,7 @@ router.put('/:id', middleware.userExtractor, async (req, res) => {
   if (!blog)
     throw Error('invalid blog id');
   if (req.user.id !== blog.userId)
-    return res.status(401).json({ error: 'user not authorized to edit this blog' });
+    throw Error('not authorized');
   blog.likes = req.body.likes;
   await blog.save();
   return res.json(blog);
