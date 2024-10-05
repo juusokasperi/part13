@@ -1,4 +1,3 @@
-psql -U postgres postgres
 CREATE TABLE blogs (
   id SERIAL PRIMARY KEY,
   author text,
