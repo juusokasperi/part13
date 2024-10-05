@@ -1,6 +1,6 @@
 # FullStackOpen part 13 (Relational databases)
 
-Started 24/10/03.
+**Remember** to add .env file to ./bloglist-backend, see *./bloglist-backend/env.example*
 
 ## Run app:
 ```
