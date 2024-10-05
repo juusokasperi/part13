@@ -1,11 +1,18 @@
 const router = require('express').Router();
-const { UserBlogs } = require('../models');
+const { Blog, UserBlogs } = require('../models');
 const middleware = require('../util/middleware');
 
 // eslint-disable-next-line no-unused-vars
-router.post('/', async (req, res) => {
-  const blog = await UserBlogs.create(req.body);
-  return res.json(blog);
+router.post('/', middleware.userExtractor, async (req, res) => {
+  const { blogId, userId } = req.body;
+  if (req.user.id !== userId)
+    return res.status(401).json({ error: 'not authorized to edit other user\'s reading list' });
+  if (!(await Blog.findByPk(blogId)))
+    return res.status(404).json({ error: 'blog not found' });
+  if (await UserBlogs.findOne({ where: { userId, blogId } }))
+    return res.status(400).json({ error: 'blog already in reading list' });
+  const reading = await UserBlogs.create(req.body);
+  return res.json(reading);
 });
 
 router.put('/:id', middleware.userExtractor, async (req, res) => {

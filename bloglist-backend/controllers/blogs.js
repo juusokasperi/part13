@@ -55,10 +55,12 @@ router.delete('/:id', middleware.userExtractor, async (req, res) => {
   return res.status(204).end();
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', middleware.userExtractor, async (req, res) => {
   const blog = await Blog.findByPk(req.params.id);
   if (!blog)
     throw Error('invalid blog id');
+  if (req.user.id !== blog.userId)
+    return res.status(401).json({ error: 'user not authorized to edit this blog' });
   blog.likes = req.body.likes;
   await blog.save();
   return res.json(blog);

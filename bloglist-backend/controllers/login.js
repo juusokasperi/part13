@@ -8,8 +8,10 @@ const { User, Session } = require('../models/');
 
 router.post('/', async(req, res) => {
   const body = req.body;
+  if (!body.username || !body.password)
+    return res.status(401).json({ error: 'missing username or password' });
   const user = await User.scope('getAll').findOne({
-    where: { username: body.username }});
+    where: { username: body.username } });
   const passwordCorrect = user === null
     ? false
     : await bcrypt.compare(body.password, user.passwordHash);

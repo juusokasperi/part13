@@ -26,7 +26,7 @@ const userExtractor = async (request, response, next) => {
   const decodedToken = jwt.verify(request.token, SECRET);
   const session = await Session.findOne({
     where: { token: request.token, userId: decodedToken.id },
-    include: { model: User, attributes: ['id', 'username', 'disabled'] }
+    include: { model: User, attributes: ['id', 'disabled'] }
   });
 
   if (!session || session.user.disabled)
@@ -35,7 +35,6 @@ const userExtractor = async (request, response, next) => {
     return response.status(401).json({ error: 'token user mismatch' });
 
   request.user = session.user;
-
   next();
 };
 
@@ -53,6 +52,8 @@ const errorHandler = (error, request, response, next) => {
     return response.status(400).send({ error: 'Invalid username/user-id' });
   if (error.message === 'invalid reading')
     return response.status(400).send({ error: 'Invalid reading id' });
+  if (error.message === 'not authorized')
+    return response.status(401).json({ error: 'unauthorized to do operation' });
   if (error.name === 'SequelizeValidationError') {
     const formattedErrors = {};
     error.errors.forEach(err => {

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
 const { User, Blog } = require('../models');
+const middleware = require('../util/middleware');
 
 router.get('/', async(req, res) => {
   const users = await User.scope('withoutPassword').findAll({
@@ -40,11 +41,13 @@ router.get('/:id', async(req, res) => {
   return res.json(user);
 });
 
-router.put('/:username', async (req, res) => {
+router.put('/:username', middleware.userExtractor, async (req, res) => {
   const user = await User.scope('withoutPassword').findOne({
     where: { username: req.params.username } });
   if (!user)
-    throw Error('invalid user') ;
+    throw Error('invalid user');
+  if (user.username !== req.params.username)
+    throw Error('not authorized');
   user.username = req.body.username;
   await user.save();
   return res.json(user);
